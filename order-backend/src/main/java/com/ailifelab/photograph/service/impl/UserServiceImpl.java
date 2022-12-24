@@ -44,6 +44,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResultData<UserDTO> login(UserDTO loginUser) {
         StuffAccount user = this.getByAccount(loginUser.getAccount());
+        if (user == null) {
+            return ResultData.fail("该用户不存在！");
+        }
         String encPwd = PasswdUtils.getMd5Pwd(loginUser.getPassword() + user.getSalt());
         if (user != null && user.getAccount().equals(loginUser.getAccount())
                 && user.getPassword().equals(encPwd)) {
@@ -177,7 +180,7 @@ public class UserServiceImpl implements UserService {
         StuffAccount stuff = new StuffAccount();
         stuff.setId(userInfo.getId());
         stuff.setSalt(salt);
-        stuff.setPassword(PasswdUtils.getMd5Pwd(userDTO.getPasswordNew() + stuffAccount.getSalt()));
+        stuff.setPassword(PasswdUtils.getMd5Pwd(userDTO.getPasswordNew() + salt));
         this.stuffAccountRepo.updateById(stuff);
         return ResultData.success(null, "密码修改成功！");
     }

@@ -1,4 +1,4 @@
-import { LogoutOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
+import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import { history, useModel } from '@umijs/max';
 import { Avatar, Menu, Spin, message } from 'antd';
 import type { ItemType } from 'antd/es/menu/hooks/useItems';
@@ -20,6 +20,9 @@ export type GlobalHeaderRightProps = {
 };
 
 const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
+    const restFormRef = useRef<ProFormInstance>();
+    const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const { initialState, setInitialState } = useModel('@@initialState');
     /**
      * 退出登录，并且将当前的 url 保存
      */
@@ -39,7 +42,6 @@ const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
             });
         }
     };
-    const { initialState, setInitialState } = useModel('@@initialState');
     const onMenuClick = useCallback(
         (event: MenuInfo) => {
             const { key } = event;
@@ -47,12 +49,13 @@ const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
                 setInitialState((s) => ({ ...s, currentUser: undefined }));
                 loginOut();
                 return;
-            } else if (key === 'editPwd') {
+            }
+            if (key === 'editPwd') {
                 setModalVisible(true);
                 return;
             }
-
-            history.push(`/account/${key}`);
+            history.push(`/welcome`);
+            // history.push(`/account/${key}`);
         },
         [setInitialState],
     );
@@ -80,23 +83,6 @@ const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
     }
 
     const menuItems: ItemType[] = [
-        ...(menu
-            ? [
-                {
-                    key: 'center',
-                    icon: <UserOutlined />,
-                    label: '个人中心',
-                },
-                {
-                    key: 'settings',
-                    icon: <SettingOutlined />,
-                    label: '个人设置',
-                },
-                {
-                    type: 'divider' as const,
-                },
-            ]
-            : []),
         {
             key: 'editPwd',
             icon: <UserOutlined />,
@@ -112,10 +98,6 @@ const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
     const menuHeaderDropdown = (
         <Menu className={styles.menu} selectedKeys={[]} onClick={onMenuClick} items={menuItems} />
     );
-
-    const restFormRef = useRef<ProFormInstance>();
-    const formRef = useRef<ProFormInstance>();
-    const [modalVisible, setModalVisible] = useState<boolean>(false);
 
     return (
         <>

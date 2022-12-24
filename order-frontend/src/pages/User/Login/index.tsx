@@ -36,7 +36,7 @@ const LoginMessage: React.FC<{
 };
 
 const Login: React.FC = () => {
-    const [userLoginState, setUserLoginState] = useState<API.LoginResult>({});
+    const [userLoginState, setUserLoginState] = useState<API.LoginResult>();
     const [type, setType] = useState<string>('account');
     const { initialState, setInitialState } = useModel('@@initialState');
 
@@ -59,8 +59,6 @@ const Login: React.FC = () => {
             // 登录
             const msg = await login({ ...values, type });
             if (msg.code === 200) {
-                // removeCookie('orderPhoto');
-                // setCookie('orderPhoto', msg.data?.token);
                 localStorage.setItem('orderPhoto', msg.data.token);
                 message.success('登录成功！');
                 await fetchUserInfo();
@@ -75,7 +73,6 @@ const Login: React.FC = () => {
             message.error('登录失败，请重试！');
         }
     };
-    const { code, data: loginData } = userLoginState;
 
     return (
         <div className={styles.container}>
@@ -112,7 +109,7 @@ const Login: React.FC = () => {
                         ]}
                     />
 
-                    {code === 400 && (
+                    {userLoginState?.code === 400 && (
                         <LoginMessage
                             content='账户或密码错误'
                         />
