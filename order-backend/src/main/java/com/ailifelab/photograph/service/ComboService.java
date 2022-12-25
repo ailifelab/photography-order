@@ -18,7 +18,7 @@ public interface ComboService {
 
     ResultData<Page<ComboInfo>> list(ComboInfoDTO comboInfo);
 
-    ResultData<List<ComboInfo>> selectMembers(ComboInfoDTO comboInfo);
+    ResultData<List<ComboInfo>> selectList(ComboInfoDTO comboInfo);
 
     ComboInfo getComboById(Long comboId);
 }

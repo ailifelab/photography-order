@@ -253,7 +253,26 @@ comment on column statistics_view_order_income.his_expenditure is '历史订单�
 comment on column statistics_view_order_income.his_gross_profit is '历史订单毛利润';
 comment on column statistics_view_order_income.year_total_price is '年度订单总金额';
 comment on column statistics_view_order_income.year_income is '年度订单总收入';
-comment on column statistics_view_order_income.year_expenditure is '年度订单总支出';
+comment on column statistics_view_order_income.year_expenditure is '年度订单总支出';drop view statistics_view_mon_combo_income;
+CREATE VIEW statistics_view_mon_combo_income AS
+SELECT
+b.name AS combo_name,
+b.id AS combo_id,
+--月度套餐数量占比情况
+COUNT(a.id) AS num,
+--月度套餐金额占比情况
+SUM(b.price-a.off_price) AS price
+FROM order_info_detail a
+INNER JOIN order_info c
+ON a.order_num=c.order_num
+LEFT JOIN combo_info b
+ON a.combo_id=b.id
+WHERE c.delete_tag=0
+GROUP BY b.name,b.id;
+comment on column statistics_view_mon_combo_income.combo_name is '套餐名称';
+comment on column statistics_view_mon_combo_income.combo_id is '套餐编码';
+comment on column statistics_view_mon_combo_income.num is '月度套餐数量占比情况';
+comment on column statistics_view_mon_combo_income.price is '月度套餐金额占比情况';
 comment on column statistics_view_order_income.year_gross_profit is '年度订单毛利润';
 comment on column statistics_view_order_income.quarter_total_price is '季度订单总金额';
 comment on column statistics_view_order_income.quarter_income is '季度订单总收入';
@@ -274,7 +293,7 @@ b.id AS combo_id,
 --月度套餐数量占比情况
 COUNT(a.id) AS num,
 --月度套餐金额占比情况
-SUM(b.price) AS price
+SUM(b.price-a.off_price) AS price
 FROM order_info_detail a
 INNER JOIN order_info c
 ON a.order_num=c.order_num

@@ -9,4 +9,9 @@ public class UserTest {
         String encPwd = PasswdUtils.getMd5Pwd("123" + "xx5x");
         System.out.println(encPwd);
     }
+
+    @Test
+    public void genEnc() throws Exception {
+        com.alibaba.druid.filter.config.ConfigTools.main(new String[]{""});
+    }
 }

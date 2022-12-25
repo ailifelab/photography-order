@@ -290,9 +290,11 @@ public class OrderServiceImpl implements OrderService {
         calendar.setTime(watchMonth);
         String year = Integer.toString(calendar.get(Calendar.YEAR));
         String month = Integer.toString(calendar.get(Calendar.MONTH) + 1);
+        month = month.length() == 1 ? "0" + month : month;
         String monthPriv = Integer.toString(calendar.get(Calendar.MONTH) == Calendar.JANUARY ? Calendar.DECEMBER : calendar.get(Calendar.MONTH));
+        monthPriv = monthPriv.length() == 1 ? "0" + monthPriv : monthPriv;
         String monthNext = Integer.toString(calendar.get(Calendar.MONTH) == Calendar.DECEMBER ? Calendar.JANUARY + 1 : calendar.get(Calendar.MONTH) + 2);
-
+        monthNext = monthNext.length() == 1 ? "0" + monthNext : monthNext;
         List<AppointmentInfo> appointments = this.appointmentInfoRepo.selectMonth(year, month);
         List<AppointmentInfo> appointmentsPriv = this.appointmentInfoRepo.selectMonth(year, monthPriv);
         List<AppointmentInfo> appointmentsNext = this.appointmentInfoRepo.selectMonth(year, monthNext);
@@ -306,11 +308,13 @@ public class OrderServiceImpl implements OrderService {
             orderNums.addAll(orderNums2);
         }
         List<String> orderNumUse = orderNums.stream().distinct().toList();
-        List<OrderInfo> orderInfoList = this.orderInfoRepo.selectBatchIds(orderNumUse);
         Map<String, DailyOrdersDTO> appointmentMap = new HashMap<>();
-        this.getAppointments(appointmentMap, appointments, orderInfoList, month);
-        this.getAppointments(appointmentMap, appointmentsPriv, orderInfoList, monthPriv);
-        this.getAppointments(appointmentMap, appointmentsNext, orderInfoList, monthNext);
+        if (!orderNumUse.isEmpty()) {
+            List<OrderInfo> orderInfoList = this.orderInfoRepo.selectBatchIds(orderNumUse);
+            this.getAppointments(appointmentMap, appointments, orderInfoList, month);
+            this.getAppointments(appointmentMap, appointmentsPriv, orderInfoList, monthPriv);
+            this.getAppointments(appointmentMap, appointmentsNext, orderInfoList, monthNext);
+        }
         return ResultData.success(appointmentMap);
     }
 

@@ -61,6 +61,6 @@ public class ComboController {
 
     @PostMapping("selectList")
     public ResultData<List<ComboInfo>> selectList(@RequestBody ComboInfoDTO comboInfo) {
-        return this.comboService.selectMembers(comboInfo);
+        return this.comboService.selectList(comboInfo);
     }
 }

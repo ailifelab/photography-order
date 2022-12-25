@@ -32,7 +32,8 @@ const CalendarList: React.FC = () => {
         // console.log(date.format('YYYY-MM-DD'));
     }
     const getListData = (value: Dayjs) => {
-        const key = value.month() + 1 + '-' + value.date();
+        const monthStr = value.month() < 9 ? "0" + (value.month() + 1) : value.month() + 1;
+        const key = monthStr + '-' + value.date();
         if (monthData) {
             const dayData: API.DailyOrders = monthData[key];
             if (dayData) {

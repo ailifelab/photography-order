@@ -146,7 +146,7 @@ export async function addOrder(body: any, options?: { [key: string]: any }) {
 }
 
 /** 删除订单 */
-export async function removeOrder(body: Array<string|number>, options?: { [key: string]: any }) {
+export async function removeOrder(body: Array<string | number>, options?: { [key: string]: any }) {
     return request<API.ResultData>('/api/orders/suspend', {
         method: 'DELETE',
         data: body,
@@ -214,6 +214,13 @@ export async function removeMember(body: Array<String>) {
             'Content-Type': 'application/json',
         },
         data: body
+    });
+}
+
+/** 会员明细 */
+export async function showMember(memberId: any) {
+    return request<API.ResultData>('/api/members/details/' + memberId, {
+        method: 'GET',
     });
 }
 

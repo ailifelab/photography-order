@@ -79,6 +79,9 @@ public class MemberServiceImpl implements MemberService {
                 .like(StringUtils.isNotBlank(memberInfo.getNickname()), MemberInfo::getNickname, memberInfo.getNickname())
                 .ne(MemberInfo::getDeleteTag, 1)
                 .orderByDesc(MemberInfo::getRegisterDate);
+        if(StringUtils.isBlank(memberInfo.getNickname())){
+            wrapper.last(" limit 10");
+        }
         List<MemberInfo> results = this.memberInfoRepo.selectList(wrapper);
         return ResultData.success(results);
     }

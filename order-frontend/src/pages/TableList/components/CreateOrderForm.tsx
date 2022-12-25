@@ -21,7 +21,8 @@ import {
 } from '@ant-design/pro-components';
 import {
     updateOrders, addOrder, removeOrder, queryOrderDetail,
-    selectMembers, addMember, selectCombos, checkCalendarData
+    selectMembers, addMember, selectCombos, checkCalendarData,
+    showMember
 } from '@/services/ant-design-pro/api';
 import { PlusOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import moment from 'dayjs';
@@ -54,9 +55,15 @@ const CreateOrderForm: React.FC = (props: any) => {
     const [title, setTitle] = useState<string>();
 
     useEffect(() => {
-        if (memberInfo.length == 0) {
+        if (memberInfo.length === 0) {
             if (modalVisible) {
-                getMemberList("");
+                console.log(memberInfo);
+                const memberId = restFormRef.current?.getFieldValue("memberId");
+                showMember(memberId).then(result => {
+                    if (200 === result.code) {
+                        setMemberInfo([result.data])
+                    }
+                })
             }
         }
         if (props.id == null) {
@@ -64,7 +71,7 @@ const CreateOrderForm: React.FC = (props: any) => {
         } else {
             setTitle("修改订单");
         }
-    })
+    }, [])
 
     const getMemberList = (nickname?: string) => {
         selectMembers({ nickname: nickname }).then(resArray => {
@@ -98,7 +105,23 @@ const CreateOrderForm: React.FC = (props: any) => {
             timeout = null;
         }
         const fake = () => {
-            getMemberList(nickname);
+            if (nickname !== null && nickname !== "") {
+                getMemberList(nickname);
+            } else {
+                if (memberInfo.length === 0) {
+                    if (modalVisible) {
+                        const memberId = restFormRef.current?.getFieldValue("memberId");
+                        showMember(memberId).then(result => {
+                            if (200 === result.code) {
+                                const memberOne = result.data;
+                                memberOne.label = memberOne.nickname;
+                                memberOne.value = memberOne.memberId
+                                setMemberInfo([memberOne])
+                            }
+                        })
+                    }
+                }
+            }
         };
         timeout = setTimeout(fake, 1000);
     }
@@ -205,6 +228,16 @@ const CreateOrderForm: React.FC = (props: any) => {
                                 queryOrderDetail(props.id).then(msg => {
                                     if (msg.code === 200) {
                                         restFormRef.current?.setFieldsValue(msg.data);
+                                        const memberId = msg.data.memberId;
+                                        showMember(memberId).then(result => {
+                                            if (200 === result.code) {
+                                                const memberOne = result.data;
+                                                memberOne.label = memberOne.nickname;
+                                                memberOne.value = memberOne.memberId
+                                                setMemberInfo([memberOne])
+                                            }
+                                        })
+
                                     } else {
                                         message.error('查询失败：' + msg.msg);
                                     }

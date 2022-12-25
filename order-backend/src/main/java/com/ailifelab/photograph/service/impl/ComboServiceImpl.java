@@ -5,6 +5,9 @@ import com.ailifelab.photograph.entity.dto.ComboInfoDTO;
 import com.ailifelab.photograph.entity.po.ComboInfo;
 import com.ailifelab.photograph.repository.ComboInfoRepo;
 import com.ailifelab.photograph.service.ComboService;
+import com.ailifelab.photograph.utils.RedisUtils;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.commons.lang3.StringUtils;
@@ -19,11 +22,19 @@ public class ComboServiceImpl implements ComboService {
     @Resource
     private ComboInfoRepo comboInfoRepo;
 
+    @Resource
+    private RedisUtils redisUtils;
+
     @Override
     public ResultData<ComboInfo> addCombo(ComboInfo comboInfo) {
         comboInfo.setCreateTime(new Date());
         comboInfo.setId(null);
         this.comboInfoRepo.insert(comboInfo);
+        //更新缓存
+        LambdaQueryWrapper<ComboInfo> wrapper = new LambdaQueryWrapper<ComboInfo>()
+                .ne(ComboInfo::getDeleteTag, 1);
+        List<ComboInfo> results = this.comboInfoRepo.selectList(wrapper);
+        redisUtils.set("comboList", JSON.toJSONString(results));
         return ResultData.success(this.comboInfoRepo.selectById(comboInfo.getId()));
     }
 
@@ -32,6 +43,9 @@ public class ComboServiceImpl implements ComboService {
         this.comboInfoRepo.deleteBatchIds(comboIds);
         LambdaQueryWrapper<ComboInfo> wrapper = new LambdaQueryWrapper<ComboInfo>()
                 .ne(ComboInfo::getDeleteTag, 1);
+        //更新缓存
+        List<ComboInfo> results1 = this.comboInfoRepo.selectList(wrapper);
+        redisUtils.set("comboList", JSON.toJSONString(results1));
         Page<ComboInfo> results = this.comboInfoRepo.selectPage(new Page<>(1, 10), wrapper);
         return ResultData.success(results);
     }
@@ -48,6 +62,11 @@ public class ComboServiceImpl implements ComboService {
         }
         this.comboInfoRepo.updateById(comboInfo);
         oldInfo = this.comboInfoRepo.selectById(comboId);
+        //更新缓存
+        LambdaQueryWrapper<ComboInfo> wrapper = new LambdaQueryWrapper<ComboInfo>()
+                .ne(ComboInfo::getDeleteTag, 1);
+        List<ComboInfo> results = this.comboInfoRepo.selectList(wrapper);
+        redisUtils.set("comboList", JSON.toJSONString(results));
         return ResultData.success(oldInfo);
     }
 
@@ -75,17 +94,29 @@ public class ComboServiceImpl implements ComboService {
     }
 
     @Override
-    public ResultData<List<ComboInfo>> selectMembers(ComboInfoDTO comboInfo) {
-        LambdaQueryWrapper<ComboInfo> wrapper = new LambdaQueryWrapper<ComboInfo>()
-                .like(StringUtils.isNotBlank(comboInfo.getName()), ComboInfo::getName, comboInfo.getName())
-                .ne(ComboInfo::getDeleteTag, 1);
-        List<ComboInfo> results = this.comboInfoRepo.selectList(wrapper);
+    public ResultData<List<ComboInfo>> selectList(ComboInfoDTO comboInfo) {
+        String comboJSONStr = redisUtils.get("comboList");
+        List<ComboInfo> results = null;
+        if (comboJSONStr != null) {
+            JSONArray jsonArray = JSONArray.parse(comboJSONStr);
+            if (!jsonArray.isEmpty()) {
+                results = jsonArray.toList(ComboInfo.class);
+            }
+        }
+        if (results == null) {
+            LambdaQueryWrapper<ComboInfo> wrapper = new LambdaQueryWrapper<ComboInfo>()
+                    .ne(ComboInfo::getDeleteTag, 1);
+            results = this.comboInfoRepo.selectList(wrapper);
+            redisUtils.set("comboList", JSON.toJSONString(results));
+        }
+        if (StringUtils.isNotBlank(comboInfo.getName())) {
+            results = results.stream().filter(data -> StringUtils.contains(data.getName(), comboInfo.getName())).toList();
+        }
         return ResultData.success(results);
     }
 
     @Override
     public ComboInfo getComboById(Long comboId) {
-        //Todo 加缓存
         return this.comboInfoRepo.selectById(comboId);
     }
 }

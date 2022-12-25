@@ -226,6 +226,13 @@ const Welcome: React.FC = () => {
               </ProCard>
             </ProCard>
             <StatisticCard
+              statistic={{
+                prefix: '￥',
+                title: '待收款',
+                value: (orderData?.sumBalanceToPay),
+              }}
+            />
+            <StatisticCard
               chart={
                 <img
                   src="https://gw.alipayobjects.com/zos/alicdn/zevpN7Nv_/xiaozhexiantu.svg"
